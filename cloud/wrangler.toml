@@ -1,0 +1,15 @@
+# Signal Desk online (read-only copy of the dashboard). Deploy: see cloud/README.md
+name = "signal-desk"
+main = "src/worker.js"
+compatibility_date = "2025-10-01"
+workers_dev = true
+
+[assets]
+directory = "../dashboard"
+binding = "ASSETS"
+run_worker_first = true
+
+[[d1_databases]]
+binding = "DB"
+database_name = "signal-desk"
+database_id = "REPLACE_WITH_D1_ID"

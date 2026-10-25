@@ -234,6 +234,35 @@ input[type=range] { accent-color: var(--accent); width: 180px; }
 .kind { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: 1px; background: var(--text-3); }
 .kind.plan { background: var(--accent); } .kind.fill { background: var(--green); } .kind.partial, .kind.exit { background: var(--c-desk); }
 .kind.stop { background: var(--purple); } .kind.brake { background: var(--red); } .kind.skip, .kind.cancel { background: var(--text-3); }
+
+/* phone: iOS-style translucent tab bar at the bottom, thumb-reachable */
+.tabbar { display: none; }
+html.cloud #rerun { display: none; }
+.pos-grid { grid-template-columns: 1fr 1fr; }
+@media (max-width: 700px) { .pos-grid { grid-template-columns: 1fr; } }
+.more-link { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 36px; padding: 16px 20px; border-radius: var(--radius); background: var(--surface); box-shadow: var(--shadow); color: var(--text); cursor: pointer; transition: transform 100ms ease-out; -webkit-tap-highlight-color: transparent; }
+.more-link:active { transform: scale(.98); }
+.more-link span { color: var(--text-2); font-size: 14px; }
+.more-link b::after { content: " ›"; color: var(--text-3); }
+@media (max-width: 700px) {
+  .subnav { display: none; }
+  .tabbar {
+    display: grid; grid-template-columns: repeat(5, 1fr); position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
+    padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
+    background: var(--chrome); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px);
+    border-top: 1px solid var(--hair);
+  }
+  .tabbar button {
+    appearance: none; border: 0; background: none; color: var(--text-3); font: 500 10px/1.2 -apple-system, system-ui; letter-spacing: .01em;
+    display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 4px 0; min-height: 48px; cursor: pointer;
+    -webkit-tap-highlight-color: transparent; transition: transform 100ms ease-out, color 150ms;
+  }
+  .tabbar button:active { transform: scale(.92); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); }
+  .tabbar svg { width: 25px; height: 25px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+  main { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
+}
+@media (prefers-reduced-transparency: reduce) { .tabbar { background: var(--surface); backdrop-filter: none; -webkit-backdrop-filter: none; } }
 </style>
 </head>
 <body>
@@ -287,7 +316,7 @@ input[type=range] { accent-color: var(--accent); width: 180px; }
     <p class="lede">Paper trading della strategia Desk su un conto simulato. Prezzi live di Binance, nessun ordine reale: le notifiche ti dicono cosa farebbe, e puoi replicarlo a mano.</p>
     <div class="toolbar" id="bot-controls"></div>
     <div class="grid g4" id="bot-kpis"></div>
-    <div class="section grid g2" style="grid-template-columns:1fr 1fr" id="bot-positions"></div>
+    <div class="section grid pos-grid" id="bot-positions"></div>
     <div class="section card flush chart-wrap">
       <div class="chart sm" id="bot-chart"></div>
       <div class="chart-empty" id="bot-chart-empty" hidden></div>
@@ -316,6 +345,7 @@ input[type=range] { accent-color: var(--accent); width: 180px; }
       <div class="card" id="method"></div>
       <div class="card" id="how-measured"></div>
     </div>
+    <div class="more-link" data-go="lab" role="link" tabindex="0"><div><b>Laboratorio</b><br><span>Il bot sui livelli, le uscite provate e le varianti di Chento</span></div></div>
   </section>
 
   <!-- CONFRONTO -->
@@ -349,6 +379,7 @@ input[type=range] { accent-color: var(--accent); width: 180px; }
       <div id="declared"></div>
     </div>
     <p class="tiny section">Esposizione 1× = nozionale pari al capitale per ogni entry (5% di margine a 20x). Scala lineare e indicativa. Fee incluse.</p>
+    <div class="more-link" data-go="lab" role="link" tabindex="0"><div><b>Laboratorio</b><br><span>Il bot sui livelli, le uscite provate e le varianti di Chento</span></div></div>
   </section>
 
   <!-- LABORATORIO -->
@@ -393,6 +424,14 @@ input[type=range] { accent-color: var(--accent); width: 180px; }
     <div class="card flush"><div class="feed" id="feed-all"></div></div>
   </section>
 </main>
+
+<nav class="tabbar" id="tabbar" aria-label="Sezioni">
+  <button data-view="today"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>Oggi</button>
+  <button data-view="bot"><svg viewBox="0 0 24 24"><rect x="4.5" y="8" width="15" height="11" rx="3"/><path d="M12 4.5V8M9 13h.01M15 13h.01M9.5 16h5"/></svg>Bot</button>
+  <button data-view="compare"><svg viewBox="0 0 24 24"><path d="M5 19.5V11M10 19.5V5M15 19.5v-6M20 19.5V8.5"/></svg>Confronto</button>
+  <button data-view="strategies"><svg viewBox="0 0 24 24"><circle cx="6" cy="7" r="1.6"/><circle cx="6" cy="12" r="1.6"/><circle cx="6" cy="17" r="1.6"/><path d="M10.5 7H19M10.5 12H19M10.5 17H19"/></svg>Strategie</button>
+  <button data-view="messages"><svg viewBox="0 0 24 24"><path d="M20 12.5a7.5 7 0 0 1-10.6 6.4L4.5 20l1.3-3.8A7 7 0 1 1 20 12.5z"/></svg>Messaggi</button>
+</nav>
 
 <div class="lightbox" id="lightbox"><img alt=""></div>
 
@@ -468,8 +507,21 @@ function segmented(el, onPick, initial) {
   pick(buttons.find((b) => b.dataset.view === initial || b.dataset.f === initial) || buttons[0]);
 }
 
+// Tab bar and in-page links drive the same segmented control, so both stay in sync.
+function go(view) {
+  const b = $(`#seg [data-view="${view}"]`);
+  if (b) b.dispatchEvent(new PointerEvent('pointerdown'));
+}
+document.addEventListener('pointerdown', (e) => {
+  const t = e.target.closest('#tabbar button, [data-go]');
+  if (t) go(t.dataset.view || t.dataset.go);
+});
+
 function show(view) {
+  const changed = current() && current() !== view;
   $$('.view').forEach((v) => v.classList.toggle('on', v.id === 'view-' + view));
+  $$('#tabbar button').forEach((b) => b.setAttribute('aria-selected', b.dataset.view === view || (view === 'lab' && b.dataset.view === 'strategies')));
+  if (changed) scrollTo({ top: 0 });
   try { localStorage.setItem('desk.view', view); } catch {}
   if (!S) return;
   requestAnimationFrame(() => Object.values(charts).forEach((c) => c.resize?.()));
@@ -770,8 +822,9 @@ function renderBot() {
   const [stCls, stLabel] = STATUS[sm.status];
   const notifyOn = B.notify.ntfy || B.notify.telegram;
   $('#bot-controls').innerHTML = `<span class="status-pill ${stCls}"><span class="dot ${stCls === 'active' ? 'on' : 'warn'}"></span>${stLabel}${B.pauseReason ? ` · ${esc(B.pauseReason)}` : ''}</span>
+    ${CLOUD() ? `<span class="tiny">Copia online in sola lettura · pausa e riattivazione da Telegram (/pausa, /riattiva)${B.notify.telegram ? ' · alert Telegram attivi' : ''}</span>` : `
     ${B.paused ? '<button class="btn" data-bot="resume">Riattiva</button>' : '<button class="btn ghost" data-bot="pause">Metti in pausa</button>'}
-    ${notifyOn ? '<button class="btn ghost" data-bot="test-notify">Notifica di prova</button>' : '<span class="tiny">Notifiche telefono non configurate: vedi NTFY_TOPIC nel file .env</span>'}
+    ${notifyOn ? '<button class="btn ghost" data-bot="test-notify">Notifica di prova</button>' : '<span class="tiny">Notifiche non configurate: vedi TELEGRAM_BOT_TOKEN nel file .env</span>'}`}
     <span class="spacer"></span><span class="tiny">Avviato ${when(B.startedAt).day} · ultima candela ${B.lastBarT ? when(B.lastBarT).time : '—'}</span>`;
 
   const R = S?.research?.botReplay?.summary;
@@ -853,8 +906,17 @@ document.addEventListener('click', async (e) => {
 function renderStatus(st) {
   const d = st.collector === 'online' ? 'on' : st.collector === 'degraded' ? 'warn' : 'off';
   const label = { online: 'Discord live', degraded: 'Discord instabile', offline: 'Discord offline' }[st.collector];
-  $('#status').innerHTML = `<span class="dot ${d}"></span><span>${label}<span class="label-long"> · ${st.messages} msg</span></span>`;
-  $('#ai').innerHTML = st.ai ? `<span class="dot on"></span>Claude attivo` : `Analisi a regole`;
+  if (CLOUD()) {
+    const age = S.cloud.updatedAt ? Math.max(0, Math.round((Date.now() - S.cloud.updatedAt) / 1000)) : null;
+    const ago = age == null ? 'in attesa del Mac' : age < 90 ? `aggiornato ${age} s fa` : `aggiornato ${Math.round(age / 60)} min fa`;
+    $('#status').innerHTML = S.cloud.macOnline
+      ? `<span class="dot ${d}"></span><span>${label}<span class="label-long"> · ${ago}</span></span>`
+      : `<span class="dot off"></span><span>Mac offline<span class="label-long"> · ${ago}</span></span>`;
+    $('#ai').innerHTML = `<a href="/logout">Esci</a>`;
+  } else {
+    $('#status').innerHTML = `<span class="dot ${d}"></span><span>${label}<span class="label-long"> · ${st.messages} msg</span></span>`;
+    $('#ai').innerHTML = st.ai ? `<span class="dot on"></span>Claude attivo` : `Analisi a regole`;
+  }
   $('#today-lede').innerHTML = `L'ultimo segnale di <a href="${st.channel}" target="_blank" rel="noopener">#canale</a>, letto in tre modi. Ultimo messaggio ${st.lastMessageAt ? new Date(st.lastMessageAt).toLocaleString('it-IT', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '—'}.`;
 }
 let lastPx = null;
@@ -915,9 +977,33 @@ $('#q').addEventListener('input', applyFilter);
 $('#lev').addEventListener('input', (e) => { lev = Number(e.target.value); $('#lev-out').textContent = `${lev}×`; renderCompare(); });
 $('#rerun').addEventListener('click', async (e) => { e.target.textContent = 'Calcolo in corso…'; await fetch('/api/research', { method: 'POST' }); });
 
-Promise.all([fetch('/api/state').then((r) => r.json()), fetch('/api/bot').then((r) => r.json()).catch(() => null)]).then(([state, bot]) => {
+// Online copy (Cloudflare): no live stream, so poll the latest snapshot.
+const CLOUD = () => !!S?.cloud;
+async function getJSON(u) {
+  const r = await fetch(u, { cache: 'no-store' });
+  if (r.status === 401) { location.reload(); throw new Error('session'); }
+  return r.json();
+}
+async function pollCloud() {
+  const [state, bot] = await Promise.all([getJSON('/api/state'), getJSON('/api/bot').catch(() => B)]);
+  const prev = new Set(S.feed.map((m) => m.id));
+  const researchChanged = state.research?.updatedAt !== S.research?.updatedAt;
   S = state; B = bot;
+  renderStatus(S.status); renderPrice(S.live.price); renderMarket();
+  if (S.feed.some((m) => !prev.has(m.id))) { renderActive(); renderFeeds(); renderPriceChart(); }
+  if (researchChanged) { renderStrategies(); if (current() === 'compare') renderCompare(); if (current() === 'lab') renderLab(); }
+  if (current() === 'bot') renderBot();
+}
+
+Promise.all([getJSON('/api/state'), getJSON('/api/bot').catch(() => null)]).then(([state, bot]) => {
+  S = state; B = bot;
+  document.documentElement.classList.toggle('cloud', CLOUD());
   renderAll();
+  if (CLOUD()) {
+    setInterval(() => pollCloud().catch(() => {}), 20000);
+    setInterval(() => renderStatus(S.status), 5000); // keep "aggiornato X s fa" honest
+    return;
+  }
   refreshBot();
   const es = new EventSource('/api/stream');
   es.addEventListener('bot', (e) => { B = JSON.parse(e.data); if (current() === 'bot') renderBot(); });

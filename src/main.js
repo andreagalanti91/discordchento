@@ -8,6 +8,7 @@ const { lastPrice } = require('./market');
 const { db } = require('./db');
 const { BotRunner } = require('./bot-runner');
 const telegram = require('./telegram');
+const cloud = require('./cloud-sync');
 
 const log = (...a) => console.log(new Date().toISOString(), '[main]', ...a);
 const noCollector = process.argv.includes('--no-collector');
@@ -92,6 +93,8 @@ async function refreshContext() {
       telegram.start({ bot, price: () => srv.live.price, lastSignal });
     }
   }
+
+  cloud.start({ server, bot });
 
   if (!noCollector) {
     const collector = require('./collector');

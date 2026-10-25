@@ -104,4 +104,4 @@ function start({ onResearch } = {}) {
   return { broadcast, live };
 }
 
-module.exports = { start, broadcast, live, feed, status, setBot };
+module.exports = { start, broadcast, live, feed, status, setBot, declared };

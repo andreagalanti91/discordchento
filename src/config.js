@@ -25,4 +25,7 @@ module.exports = {
   ntfyServer: env.NTFY_SERVER || 'https://ntfy.sh',
   telegramToken: env.TELEGRAM_BOT_TOKEN || '',
   telegramChatId: env.TELEGRAM_CHAT_ID || '',
+  cloudUrl: env.CLOUD_URL || '',
+  cloudSecret: env.CLOUD_INGEST_SECRET || '',
+  cloudEverySec: Number(env.CLOUD_EVERY_SEC || 60),
 };
