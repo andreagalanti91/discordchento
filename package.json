@@ -1,0 +1,28 @@
+{
+  "name": "signal-desk",
+  "version": "1.0.0",
+  "description": "Reads a Discord trading channel 24/7 on your Mac, parses every move, backtests it and serves an Apple-style dashboard.",
+  "main": "src/main.js",
+  "scripts": {
+    "login": "node --no-warnings scripts/login-and-backfill.js",
+    "start": "node --no-warnings src/main.js",
+    "dashboard": "node --no-warnings src/main.js --no-collector",
+    "research": "node --no-warnings src/research.js",
+    "parse:check": "node --no-warnings scripts/parse-history.js",
+    "service": "bash scripts/install-service.sh",
+    "service:stop": "bash scripts/uninstall-service.sh",
+    "bot:replay": "node --no-warnings scripts/bot-replay.js --log",
+    "bot:test": "node scripts/bot-selftest.js",
+    "telegram:setup": "node --no-warnings scripts/telegram-setup.js"
+  },
+  "license": "MIT",
+  "type": "commonjs",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.1.0",
+    "playwright": "^1.56.1"
+  },
+  "private": true,
+  "engines": {
+    "node": ">=22.5"
+  }
+}

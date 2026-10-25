@@ -1,0 +1,942 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Signal Desk</title>
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#f5f5f7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Desk">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<script src="https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
+<style>
+:root {
+  --bg: #f5f5f7; --surface: #ffffff; --surface-2: #fbfbfd; --text: #1d1d1f; --text-2: #6e6e73; --text-3: #86868b;
+  --hair: rgba(0,0,0,.08); --chrome: rgba(250,250,252,.72); --chrome-edge: rgba(255,255,255,.6);
+  --accent: #0071e3; --green: #1f9d55; --red: #e0352b; --orange: #c46a00; --purple: #8944ab;
+  --green-bg: rgba(52,199,89,.12); --red-bg: rgba(255,59,48,.10); --orange-bg: rgba(255,149,0,.13); --blue-bg: rgba(0,113,227,.10);
+  --shadow: 0 1px 2px rgba(0,0,0,.04), 0 8px 24px rgba(0,0,0,.06);
+  --radius: 18px; --spring: cubic-bezier(.2,.9,.25,1.05); --ease: cubic-bezier(.25,.1,.25,1);
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #000000; --surface: #1c1c1e; --surface-2: #232325; --text: #f5f5f7; --text-2: #a1a1a6; --text-3: #8e8e93;
+  --hair: rgba(255,255,255,.10); --chrome: rgba(22,22,24,.72); --chrome-edge: rgba(255,255,255,.08);
+  --accent: #2997ff; --green: #30d158; --red: #ff453a; --orange: #ff9f0a; --purple: #bf5af2;
+  --green-bg: rgba(48,209,88,.15); --red-bg: rgba(255,69,58,.15); --orange-bg: rgba(255,159,10,.15); --blue-bg: rgba(41,151,255,.15);
+  --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35); --thumb: #636366;
+}}
+:root[data-theme="dark"] {
+  --bg: #000000; --surface: #1c1c1e; --surface-2: #232325; --text: #f5f5f7; --text-2: #a1a1a6; --text-3: #8e8e93;
+  --hair: rgba(255,255,255,.10); --chrome: rgba(22,22,24,.72); --chrome-edge: rgba(255,255,255,.08);
+  --accent: #2997ff; --green: #30d158; --red: #ff453a; --orange: #ff9f0a; --purple: #bf5af2;
+  --green-bg: rgba(48,209,88,.15); --red-bg: rgba(255,69,58,.15); --orange-bg: rgba(255,159,10,.15); --blue-bg: rgba(41,151,255,.15);
+  --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35); --thumb: #636366;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.47 -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif; letter-spacing: -0.01em; -webkit-font-smoothing: antialiased; }
+.num { font-variant-numeric: tabular-nums; }
+a { color: var(--accent); text-decoration: none; }
+
+/* translucent chrome */
+.bar { position: sticky; top: 0; z-index: 20; background: var(--chrome); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); border-bottom: 1px solid var(--hair); }
+.bar { padding-top: env(safe-area-inset-top); }
+.bar-in { max-width: 1240px; margin: 0 auto; padding: 12px max(24px, env(safe-area-inset-right)) 12px max(24px, env(safe-area-inset-left)); display: flex; align-items: center; gap: 16px; }
+.brand { font: 600 17px/1 -apple-system, system-ui; letter-spacing: -0.02em; display: flex; align-items: center; gap: 8px; }
+.brand i { width: 22px; height: 22px; border-radius: 7px; background: linear-gradient(140deg, #0a84ff, #5e5ce6); display: inline-block; box-shadow: inset 0 1px 0 rgba(255,255,255,.35); }
+.spacer { flex: 1; }
+.pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 500; background: var(--surface); border: 1px solid var(--hair); color: var(--text-2); white-space: nowrap; }
+.dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text-3); }
+.dot.on { background: var(--green); box-shadow: 0 0 0 0 rgba(48,209,88,.5); animation: pulse 2.4s var(--ease) infinite; }
+.dot.warn { background: var(--orange); }
+.dot.off { background: var(--red); }
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(48,209,88,.45); } 70% { box-shadow: 0 0 0 7px rgba(48,209,88,0); } 100% { box-shadow: 0 0 0 0 rgba(48,209,88,0); } }
+.price { font: 600 17px/1 -apple-system, system-ui; letter-spacing: -0.02em; }
+.price small { font-size: 12px; font-weight: 500; margin-left: 6px; }
+
+/* segmented control */
+.seg { position: relative; display: inline-flex; padding: 3px; border-radius: 11px; background: rgba(118,118,128,.12); }
+.seg button { position: relative; z-index: 1; appearance: none; border: 0; background: none; font: 500 13px/1 -apple-system, system-ui; color: var(--text); padding: 8px 14px; border-radius: 8px; cursor: pointer; transition: transform 100ms ease-out, opacity 150ms; }
+.seg button:active { transform: scale(.96); }
+.seg .thumb { position: absolute; z-index: 0; top: 3px; bottom: 3px; border-radius: 8px; background: var(--thumb, #fff); box-shadow: 0 1px 3px rgba(0,0,0,.12), 0 0 0 .5px rgba(0,0,0,.04); transition: transform 380ms var(--spring), width 380ms var(--spring); }
+.subnav { max-width: 1240px; margin: 0 auto; padding: 0 24px 12px; display: flex; gap: 12px; align-items: center; overflow-x: auto; }
+
+main { max-width: 1240px; margin: 0 auto; padding: 28px 24px calc(80px + env(safe-area-inset-bottom)); }
+button, a, .thumbs button { -webkit-tap-highlight-color: transparent; }
+.search { font-size: 16px; }
+.view { display: none; }
+.view.on { display: block; animation: rise 420ms var(--spring); }
+@keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+h1 { font: 700 clamp(28px, 4vw, 40px)/1.08 -apple-system, "SF Pro Display", system-ui; letter-spacing: -0.03em; margin: 0 0 6px; }
+h2 { font: 600 22px/1.2 -apple-system, "SF Pro Display", system-ui; letter-spacing: -0.02em; margin: 0 0 14px; }
+h3 { font: 600 15px/1.3 -apple-system, system-ui; margin: 0 0 8px; letter-spacing: -0.01em; }
+.lede { color: var(--text-2); font-size: 17px; margin: 0 0 24px; max-width: 760px; }
+.muted { color: var(--text-2); }
+.tiny { font-size: 12px; color: var(--text-3); }
+
+.grid { display: grid; gap: 16px; }
+.g2 { grid-template-columns: 1.35fr 1fr; }
+.g3 { grid-template-columns: repeat(3, 1fr); }
+.g4 { grid-template-columns: repeat(4, 1fr); }
+@media (max-width: 960px) { .g2, .g3 { grid-template-columns: 1fr; } .g4 { grid-template-columns: repeat(2, 1fr); } }
+.card { background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px; min-width: 0; }
+.card.flush { padding: 0; overflow: hidden; }
+.section { margin-top: 36px; }
+
+/* KPIs */
+.kpi .label { font-size: 12px; font-weight: 500; color: var(--text-2); text-transform: uppercase; letter-spacing: .04em; }
+.kpi .value { font: 600 30px/1.1 -apple-system, "SF Pro Display", system-ui; letter-spacing: -0.03em; margin-top: 6px; }
+.kpi .sub { font-size: 13px; color: var(--text-2); margin-top: 4px; }
+.pos { color: var(--green); } .neg { color: var(--red); }
+
+/* plan */
+.plan-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.side { font: 700 13px/1 -apple-system, system-ui; padding: 6px 10px; border-radius: 8px; letter-spacing: .02em; }
+.side.LONG { color: var(--green); background: var(--green-bg); }
+.side.SHORT { color: var(--red); background: var(--red-bg); }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th { text-align: left; font-weight: 500; color: var(--text-2); font-size: 12px; padding: 8px 10px; border-bottom: 1px solid var(--hair); white-space: nowrap; }
+td { padding: 10px; border-bottom: 1px solid var(--hair); vertical-align: top; }
+tr:last-child td { border-bottom: 0; }
+td.r, th.r { text-align: right; }
+.scroll-x { overflow-x: auto; }
+.levels { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 14px; }
+.lv { background: var(--surface-2); border: 1px solid var(--hair); border-radius: 12px; padding: 10px 12px; }
+.lv b { display: block; font: 600 17px/1.2 -apple-system, system-ui; letter-spacing: -0.02em; }
+.lv span { font-size: 12px; color: var(--text-2); }
+@media (max-width: 700px) { .levels { grid-template-columns: repeat(2, 1fr); } }
+
+/* chart */
+.chart { height: 420px; }
+.chart.sm { height: 300px; }
+.legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--text-2); padding: 12px 20px 16px; }
+.legend i { display: inline-block; width: 10px; height: 3px; border-radius: 2px; margin-right: 6px; vertical-align: middle; }
+
+/* feed */
+.feed { display: flex; flex-direction: column; }
+.msg { padding: 16px 20px; border-bottom: 1px solid var(--hair); display: grid; grid-template-columns: 56px 1fr; gap: 12px; }
+.msg:last-child { border-bottom: 0; }
+.msg.new { animation: arrive 900ms var(--spring); }
+@keyframes arrive { from { background: var(--blue-bg); transform: translateY(-6px); opacity: .2; } to { background: transparent; transform: none; opacity: 1; } }
+.time { font-size: 12px; color: var(--text-3); line-height: 1.3; }
+.time b { display: block; color: var(--text-2); font-weight: 600; font-size: 13px; }
+.text { white-space: pre-wrap; word-break: break-word; }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0 0; }
+.chip { font-size: 12px; font-weight: 500; padding: 3px 9px; border-radius: 999px; background: rgba(118,118,128,.12); color: var(--text-2); }
+.chip.entry { background: var(--blue-bg); color: var(--accent); }
+.chip.manage { background: var(--orange-bg); color: var(--orange); }
+.chip.long { background: var(--green-bg); color: var(--green); }
+.chip.short { background: var(--red-bg); color: var(--red); }
+.notes { margin: 8px 0 0; padding: 0; list-style: none; font-size: 13px; color: var(--text-2); }
+.notes li { padding-left: 14px; position: relative; margin: 3px 0; }
+.notes li::before { content: ""; position: absolute; left: 2px; top: .62em; width: 5px; height: 5px; border-radius: 50%; background: var(--text-3); }
+.ai { margin-top: 10px; padding: 10px 12px; border-radius: 12px; background: var(--surface-2); border: 1px solid var(--hair); font-size: 13px; }
+.thumbs { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+.thumbs button { appearance: none; border: 0; padding: 0; background: none; cursor: zoom-in; border-radius: 10px; overflow: hidden; transition: transform 100ms ease-out; box-shadow: 0 0 0 1px var(--hair); }
+.thumbs button:active { transform: scale(.97); }
+.thumbs img { display: block; height: 96px; width: auto; max-width: 180px; object-fit: cover; }
+
+/* lightbox */
+.lightbox { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; background: rgba(0,0,0,0); pointer-events: none; transition: background 300ms var(--ease); }
+.lightbox.on { background: rgba(0,0,0,.72); pointer-events: auto; cursor: zoom-out; }
+.lightbox img { max-width: 92vw; max-height: 90vh; border-radius: 14px; box-shadow: 0 30px 80px rgba(0,0,0,.5); transform-origin: 0 0; opacity: 0; transition: transform 420ms var(--spring), opacity 160ms var(--ease); }
+.lightbox.on img { opacity: 1; }
+
+/* inputs */
+.toolbar { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 16px; }
+.search { appearance: none; border: 1px solid var(--hair); background: var(--surface); color: var(--text); border-radius: 10px; padding: 9px 12px; font: inherit; min-width: 240px; flex: 1; max-width: 420px; }
+.search:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px var(--blue-bg); }
+.btn { appearance: none; border: 0; border-radius: 999px; padding: 9px 16px; font: 500 14px/1 -apple-system, system-ui; background: var(--accent); color: #fff; cursor: pointer; transition: transform 100ms ease-out, opacity 150ms; }
+.btn:active { transform: scale(.97); }
+.btn.ghost { background: rgba(118,118,128,.12); color: var(--text); }
+input[type=range] { accent-color: var(--accent); width: 180px; }
+.callout { border-radius: 14px; padding: 14px 16px; background: var(--orange-bg); color: var(--text); font-size: 14px; }
+.callout.blue { background: var(--blue-bg); }
+.callout.green { background: var(--green-bg); }
+.steps { counter-reset: s; list-style: none; padding: 0; margin: 0; }
+.steps li { counter-increment: s; position: relative; padding: 0 0 14px 38px; }
+.steps li::before { content: counter(s); position: absolute; left: 0; top: 0; width: 26px; height: 26px; border-radius: 50%; background: var(--blue-bg); color: var(--accent); font: 600 13px/26px -apple-system, system-ui; text-align: center; }
+.empty { padding: 32px; text-align: center; color: var(--text-2); }
+.bar-row { display: flex; align-items: center; gap: 10px; font-size: 13px; margin: 6px 0; }
+.bar-row .track { flex: 1; height: 8px; border-radius: 4px; background: rgba(118,118,128,.14); overflow: hidden; }
+.bar-row .fill { height: 100%; border-radius: 4px; background: var(--accent); transform-origin: left; animation: grow 700ms var(--spring); }
+@keyframes grow { from { transform: scaleX(0); } }
+
+.brand, .price { white-space: nowrap; }
+.subnav, .scroll-x { scrollbar-width: none; }
+.subnav::-webkit-scrollbar, .scroll-x::-webkit-scrollbar { display: none; }
+@media (max-width: 700px) {
+  .bar-in, .subnav, main { padding-left: 16px; padding-right: 16px; }
+  .bar-in { gap: 10px; padding-top: 10px; padding-bottom: 10px; }
+  .brand { font-size: 16px; } .price { font-size: 15px; }
+  #status .label-long { display: none; }
+  .chart { height: 320px; } .hide-sm { display: none; }
+  .card { padding: 16px; } .msg { grid-template-columns: 44px 1fr; padding: 14px 16px; }
+}
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: opacity 150ms ease !important; } .lightbox img { transform: none !important; } }
+@media (prefers-reduced-transparency: reduce) { .bar { background: var(--surface); backdrop-filter: none; -webkit-backdrop-filter: none; } }
+@media (prefers-contrast: more) { .card { box-shadow: 0 0 0 1px var(--text-3); } }
+
+/* three strategies: one identity colour each, used everywhere */
+:root { --c-chento: var(--orange); --c-discord: var(--purple); --c-desk: var(--accent); }
+.sdot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; flex: none; }
+.shead { display: flex; align-items: center; gap: 8px; }
+.shead h3 { margin: 0; font-size: 17px; }
+.trio { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+@media (max-width: 960px) { .trio { grid-template-columns: 1fr; } }
+/* phone: the three readings of the live signal swipe side by side */
+@media (max-width: 700px) {
+  #active .trio { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: 84%; overflow-x: auto; scroll-snap-type: x mandatory; overscroll-behavior-x: contain; margin: 0 -16px; padding: 4px 16px 8px; scroll-padding: 0 16px; scrollbar-width: none; }
+  #active .trio::-webkit-scrollbar { display: none; }
+  #active .trio > .card { scroll-snap-align: start; }
+}
+.card.tint { position: relative; overflow: hidden; }
+.card.tint::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 3px; background: var(--tint); }
+.who { color: var(--text-2); font-size: 13px; margin: 4px 0 14px; }
+.rows { margin: 0; }
+.rows div { padding: 10px 0; border-top: 1px solid var(--hair); }
+.rows dt { font-size: 12px; font-weight: 500; color: var(--text-3); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 2px; }
+.rows dd { margin: 0; font-size: 14px; }
+.tag { display: inline-block; font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 999px; background: rgba(118,118,128,.12); color: var(--text-2); }
+.tag.ok { background: var(--green-bg); color: var(--green); }
+.tag.warn { background: var(--orange-bg); color: var(--orange); }
+.tag.best { background: var(--blue-bg); color: var(--accent); }
+.metric { display: flex; justify-content: space-between; align-items: baseline; padding: 8px 0; border-top: 1px solid var(--hair); font-size: 14px; }
+.metric span:first-child { color: var(--text-2); }
+.big { font: 600 34px/1.1 -apple-system, "SF Pro Display", system-ui; letter-spacing: -0.03em; margin: 10px 0 2px; }
+.progress { height: 6px; border-radius: 3px; background: rgba(118,118,128,.14); overflow: hidden; margin-top: 10px; }
+.progress i { display: block; height: 100%; background: var(--accent); border-radius: 3px; transform-origin: left; animation: grow 700ms var(--spring); }
+.order-cell b { display: block; font-weight: 600; }
+.order-cell span { font-size: 12px; color: var(--text-3); }
+.res { font-weight: 600; white-space: nowrap; }
+#h2h td:first-child { min-width: 220px; max-width: 360px; }
+.res.none { color: var(--text-3); font-weight: 400; font-size: 13px; }
+.res.open { color: var(--orange); }
+.chart-wrap { position: relative; }
+.chart-empty[hidden] { display: none; }
+.chart-empty { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; color: var(--text-2); padding: 24px; pointer-events: none; }
+.kv { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+@media (max-width: 700px) { .kv { grid-template-columns: repeat(2, 1fr); } }
+.status-pill { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14px; padding: 6px 12px; border-radius: 999px; }
+.status-pill.active { background: var(--green-bg); color: var(--green); }
+.status-pill.paused, .status-pill.blocked { background: var(--orange-bg); color: var(--orange); }
+.pos-card .phase { font-size: 13px; color: var(--text-2); margin: 2px 0 12px; }
+.log-row { display: grid; grid-template-columns: 74px 1fr; gap: 12px; padding: 12px 0; border-top: 1px solid var(--hair); font-size: 14px; }
+.log-row:first-child { border-top: 0; }
+.log-row .body { white-space: pre-line; color: var(--text-2); font-size: 13px; margin-top: 2px; }
+.kind { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: 1px; background: var(--text-3); }
+.kind.plan { background: var(--accent); } .kind.fill { background: var(--green); } .kind.partial, .kind.exit { background: var(--c-desk); }
+.kind.stop { background: var(--purple); } .kind.brake { background: var(--red); } .kind.skip, .kind.cancel { background: var(--text-3); }
+</style>
+</head>
+<body>
+<header class="bar">
+  <div class="bar-in">
+    <div class="brand"><i></i>Signal Desk</div>
+    <span class="pill" id="status"><span class="dot"></span><span>connessione…</span></span>
+    <span class="spacer"></span>
+    <span class="pill hide-sm" id="ai"></span>
+    <span class="price num" id="price">—</span>
+  </div>
+  <nav class="subnav">
+    <div class="seg" id="seg" role="tablist">
+      <span class="thumb"></span>
+      <button data-view="today" role="tab">Oggi</button>
+      <button data-view="bot" role="tab">Bot</button>
+      <button data-view="strategies" role="tab">Strategie</button>
+      <button data-view="compare" role="tab">Confronto</button>
+      <button data-view="lab" role="tab">Laboratorio</button>
+      <button data-view="messages" role="tab">Messaggi</button>
+    </div>
+  </nav>
+</header>
+
+<main>
+  <!-- OGGI -->
+  <section class="view" id="view-today">
+    <h1>Cosa fare adesso</h1>
+    <p class="lede" id="today-lede">L'ultimo segnale del canale, letto in tre modi.</p>
+    <div id="active"></div>
+    <div class="section grid g2">
+      <div class="card flush">
+        <div class="chart" id="price-chart"></div>
+        <div class="legend">
+          <span><i style="background:var(--c-discord)"></i>Livello del segnale</span>
+          <span><i style="background:var(--c-desk)"></i>Limit Desk</span>
+          <span><i style="background:var(--text-3)"></i>Cluster pivot 1H</span>
+        </div>
+      </div>
+      <div class="card" id="market"></div>
+    </div>
+    <div class="section">
+      <h2>Ultime istruzioni</h2>
+      <div class="card flush"><div class="feed" id="feed-live"></div></div>
+    </div>
+  </section>
+
+  <!-- BOT -->
+  <section class="view" id="view-bot">
+    <h1>Bot Desk</h1>
+    <p class="lede">Paper trading della strategia Desk su un conto simulato. Prezzi live di Binance, nessun ordine reale: le notifiche ti dicono cosa farebbe, e puoi replicarlo a mano.</p>
+    <div class="toolbar" id="bot-controls"></div>
+    <div class="grid g4" id="bot-kpis"></div>
+    <div class="section grid g2" style="grid-template-columns:1fr 1fr" id="bot-positions"></div>
+    <div class="section card flush chart-wrap">
+      <div class="chart sm" id="bot-chart"></div>
+      <div class="chart-empty" id="bot-chart-empty" hidden></div>
+      <div class="legend" id="bot-legend"></div>
+    </div>
+    <div class="section grid g2">
+      <div class="card"><h2>Attività</h2><div id="bot-log"></div></div>
+      <div class="card"><h2>Regole attive</h2><div id="bot-rules"></div></div>
+    </div>
+    <div class="section card">
+      <h2>Campagne chiuse</h2>
+      <div class="scroll-x"><table id="bot-trades"></table></div>
+    </div>
+  </section>
+
+  <!-- STRATEGIE -->
+  <section class="view" id="view-strategies">
+    <h1>Tre modi di giocare lo stesso segnale</h1>
+    <p class="lede">I livelli arrivano tutti da Chento. Cambia chi li esegue e come: il trader sul suo conto, chi copia il post alla lettera, e la nostra versione con regole fisse.</p>
+    <div class="trio" id="strat-cards"></div>
+    <div class="section">
+      <h2>Le differenze che contano</h2>
+      <div class="trio" id="diffs"></div>
+    </div>
+    <div class="section grid g2">
+      <div class="card" id="method"></div>
+      <div class="card" id="how-measured"></div>
+    </div>
+  </section>
+
+  <!-- CONFRONTO -->
+  <section class="view" id="view-compare">
+    <h1>Confronto</h1>
+    <p class="lede">Le tre strategie giocano gli stessi segnali sulle candele reali di Binance. Il test live conta solo i segnali arrivati dopo l'avvio, su cui nessuna strategia è stata tarata.</p>
+    <div class="toolbar">
+      <div class="seg" id="window">
+        <span class="thumb"></span>
+        <button data-f="forward">Test live</button><button data-f="history">Storico</button>
+      </div>
+      <span class="spacer"></span>
+      <span class="muted">Esposizione</span>
+      <input type="range" id="lev" min="1" max="20" step="1" value="1" aria-label="Esposizione per entry">
+      <span class="num" id="lev-out" style="min-width:24px">1×</span>
+    </div>
+    <div id="window-note"></div>
+    <div class="trio section" id="scorecard" style="margin-top:16px"></div>
+    <div class="section card flush chart-wrap">
+      <div class="chart sm" id="eq-chart"></div>
+      <div class="chart-empty" id="eq-empty" hidden></div>
+      <div class="legend" id="eq-legend"></div>
+    </div>
+    <div class="section card">
+      <h2>Segnale per segnale</h2>
+      <p class="muted" style="margin-top:-6px">Stesso post, tre esecuzioni. P&L in % del capitale con l'esposizione scelta. "Non eseguito": il prezzo non ha raggiunto l'ordine. "In DCA": il segnale si è sommato a una posizione già aperta.</p>
+      <div class="scroll-x"><table id="h2h"></table></div>
+    </div>
+    <div class="section card">
+      <h2>Chento: dichiarato vs stimato</h2>
+      <div id="declared"></div>
+    </div>
+    <p class="tiny section">Esposizione 1× = nozionale pari al capitale per ogni entry (5% di margine a 20x). Scala lineare e indicativa. Fee incluse.</p>
+  </section>
+
+  <!-- LABORATORIO -->
+  <section class="view" id="view-lab">
+    <h1>Laboratorio</h1>
+    <p class="lede">Gli esperimenti da cui è nato Desk: un bot che prova a fare a meno di Chento, e la ricerca delle uscite migliori sui suoi livelli.</p>
+    <div class="toolbar"><button class="btn ghost" id="rerun">Ricalcola tutto</button><span class="tiny" id="research-at"></span></div>
+    <div class="grid g2">
+      <div class="card">
+        <h2>Bot "Liquidity Levels"</h2>
+        <p class="muted" style="margin-top:-6px">Un anno di BTC, walk-forward: ottimizzato su 8 mesi, poi provato su 4 mai visti.</p>
+        <div class="scroll-x"><table id="wf"></table></div>
+        <div class="callout" style="margin-top:14px" id="wf-note"></div>
+      </div>
+      <div class="card flush">
+        <div class="chart sm" id="wf-chart"></div>
+        <div class="legend"><span><i style="background:var(--accent)"></i>Parametri migliori</span><span><i style="background:var(--text-3)"></i>Parametri base</span></div>
+      </div>
+    </div>
+    <div class="section card">
+      <h2>Uscite provate sui livelli del canale</h2>
+      <p class="muted" id="mech-note"></p>
+      <div class="scroll-x"><table id="mech"></table></div>
+    </div>
+    <div class="section card">
+      <h2>Varianti di Chento</h2>
+      <p class="muted" style="margin-top:-6px">Cosa succede aggiungendo uno stop stretto o togliendo gli hedge. Storico completo.</p>
+      <div class="scroll-x"><table id="lab-variants"></table></div>
+    </div>
+  </section>
+
+  <!-- MESSAGGI -->
+  <section class="view" id="view-messages">
+    <h1>Messaggi</h1>
+    <div class="toolbar">
+      <input class="search" id="q" placeholder="Cerca nei messaggi…" type="search">
+      <div class="seg" id="filter">
+        <span class="thumb"></span>
+        <button data-f="all">Tutti</button><button data-f="entry">Entry</button><button data-f="management">Gestione</button><button data-f="info">Info</button>
+      </div>
+    </div>
+    <div class="card flush"><div class="feed" id="feed-all"></div></div>
+  </section>
+</main>
+
+<div class="lightbox" id="lightbox"><img alt=""></div>
+
+<script>
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const fmt = (n, d = 0) => n == null || isNaN(n) ? '—' : Number(n).toLocaleString('it-IT', { minimumFractionDigits: d, maximumFractionDigits: d });
+const sgn = (n, d = 2) => n == null || isNaN(n) ? '—' : (n > 0 ? '+' : '') + fmt(n, d);
+const cls = (n) => n > 0 ? 'pos' : n < 0 ? 'neg' : '';
+const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const when = (ts) => { const d = new Date(ts); return { day: d.toLocaleDateString('it-IT', { day: '2-digit', month: 'short' }), time: d.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }) }; };
+const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const clean = (t) => (t || '').replace(/<@&?\d+>/g, '').replace(/@everyone/g, '').trim();
+
+let S = null;
+let lev = 1;
+let win = 'forward';
+const charts = {};
+
+/* ---------- the three strategies ---------- */
+const ORDER = ['discord', 'chento', 'desk'];
+const STRATS = {
+  discord: {
+    name: 'Segnale Discord', color: '--c-discord', who: 'Chi copia i post alla lettera',
+    trust: ['ok', 'Verificabile'],
+    rows: (c) => [
+      ['Entry', 'Limit esattamente al prezzo scritto nel post'],
+      ['Esecuzione', 'Prezzi Binance: se il prezzo si ferma a pochi dollari dal livello, l’ordine resta ineseguito'],
+      ['Stop', 'Solo quando il post lo dice ("sl be", "79.6 stops")'],
+      ['Uscite', 'Ogni "take X%" al prezzo del momento in cui arriva il messaggio'],
+      ['Leva', 'Non indicata nel post (lui suggerisce 20x)'],
+      ['Fonte dei dati', 'Messaggi + candele 1m: tutto ricostruibile'],
+    ],
+  },
+  chento: {
+    name: 'Chento', color: '--c-chento', who: 'Il trader, sul suo conto',
+    trust: ['warn', 'Stima'],
+    rows: (c) => [
+      ['Entry', `Gli stessi livelli, anticipati di circa $${c.frontrun ?? 100}; a mercato se il prezzo è entro 0,1–0,2%`],
+      ['Esecuzione', 'Su Blofin, dove spesso ottiene fill che su Binance non arrivano'],
+      ['Stop', 'Dichiarato "placeholder": gestisce a mano, il limite reale è la liquidazione'],
+      ['Uscite', 'Take parziali del 10–30% del residuo quando lo decide; SL a BE dopo la prima reazione'],
+      ['Leva', '30–50x cross, spesso a margine pieno'],
+      ['Fonte dei dati', 'Screenshot scelti da lui + nostra stima: segnali con frontrun e la sua gestione'],
+    ],
+  },
+  desk: {
+    name: 'Desk', color: '--c-desk', who: 'La nostra versione rivista',
+    trust: ['ok', 'Verificabile · campione piccolo'],
+    rows: (c) => [
+      ['Entry', `Gli stessi livelli, limit anticipati di $${c.frontrun ?? 150}`],
+      ['Esecuzione', 'Prezzi Binance; l’anticipo rende il fill probabile anche senza il tocco esatto'],
+      ['Stop', `Fisso al ${fmt(c.hardStopPct ?? 2.5, 1)}% dal prezzo medio, sempre prima della liquidazione`],
+      ['Uscite', `BE a +${fmt(c.beAtPct ?? .8, 1)}%, ${fmt((c.tp1Frac ?? .5) * 100)}% a +${fmt(c.tp1Pct ?? .8, 1)}%, il resto a +${fmt(c.tp2Pct ?? 1.5, 1)}%. Ignora i "take" del canale`],
+      ['Leva', 'A scelta: i risultati sono per 1× nozionale, si scalano'],
+      ['Fonte dei dati', 'Messaggi + candele 1m con regole fisse: tutto ricostruibile'],
+    ],
+  },
+};
+const dot = (k) => `<span class="sdot" style="background:var(${STRATS[k].color})"></span>`;
+const variants = (w = 'history') => S.research?.replica?.[w]?.variants || {};
+const cfgOf = (k) => S.research?.replica?.history?.variants?.[k]?.config || S.research?.replica?.variants?.[k]?.config || {};
+
+/* ---------- segmented controls with spring thumb ---------- */
+function segmented(el, onPick, initial) {
+  const thumb = $('.thumb', el);
+  const buttons = $$('button', el);
+  const place = (b) => { thumb.style.width = b.offsetWidth + 'px'; thumb.style.transform = `translateX(${b.offsetLeft - 3}px)`; };
+  const pick = (b) => { buttons.forEach((x) => x.setAttribute('aria-selected', x === b)); place(b); onPick(b); };
+  buttons.forEach((b) => b.addEventListener('pointerdown', () => pick(b)));
+  buttons.forEach((b) => b.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') pick(b); }));
+  new ResizeObserver(() => place(buttons.find((b) => b.getAttribute('aria-selected') === 'true') || buttons[0])).observe(el);
+  pick(buttons.find((b) => b.dataset.view === initial || b.dataset.f === initial) || buttons[0]);
+}
+
+function show(view) {
+  $$('.view').forEach((v) => v.classList.toggle('on', v.id === 'view-' + view));
+  try { localStorage.setItem('desk.view', view); } catch {}
+  if (!S) return;
+  requestAnimationFrame(() => Object.values(charts).forEach((c) => c.resize?.()));
+  if (view === 'compare') renderCompare();
+  if (view === 'lab') renderLab();
+  if (view === 'bot') renderBot();
+}
+
+/* ---------- charts ---------- */
+function makeChart(el) {
+  return LightweightCharts.createChart(el, {
+    layout: { background: { color: 'transparent' }, textColor: css('--text-2'), fontFamily: '-apple-system, system-ui', fontSize: 11 },
+    grid: { vertLines: { visible: false }, horzLines: { color: css('--hair') } },
+    rightPriceScale: { borderVisible: false }, timeScale: { borderVisible: false, timeVisible: true },
+    crosshair: { mode: 0 }, autoSize: true,
+  });
+}
+
+async function renderPriceChart() {
+  if (!charts.price) {
+    charts.price = makeChart($('#price-chart'));
+    charts.priceSeries = charts.price.addCandlestickSeries({ upColor: css('--green'), downColor: css('--red'), borderVisible: false, wickUpColor: css('--green'), wickDownColor: css('--red') });
+    charts.lines = [];
+  }
+  const k = await fetch('/api/candles?interval=1h&from=' + (Date.now() - 12 * 86400e3)).then((r) => r.json());
+  charts.priceSeries.setData(k.map((x) => ({ time: x.t / 1000, open: x.o, high: x.h, low: x.l, close: x.c })));
+  charts.lines.forEach((l) => charts.priceSeries.removePriceLine(l));
+  charts.lines = [];
+  const add = (price, color, title, style = 0, width = 1) => charts.lines.push(charts.priceSeries.createPriceLine({ price, color, lineWidth: width, lineStyle: style, axisLabelVisible: !!title, title }));
+  const ctx = S.live.ctx;
+  if (ctx) for (const l of ctx.levels.filter((l) => l.touches >= 3 && Math.abs(l.price - ctx.price) / ctx.price < 0.06)) add(l.price, css('--text-3'), '', 2, 1);
+  for (const p of activePlans()) for (const o of p.orders) {
+    if (!o.market) add(o.posted, css('--c-discord'), `${p.side === 'LONG' ? 'L' : 'S'} ${fmt(o.posted)}`, 0, 2);
+    add(o.limit, css('--c-desk'), '', 1, 1);
+  }
+}
+
+/* ---------- oggi ---------- */
+function activePlans() {
+  const out = {};
+  for (const m of S.feed) for (const p of m.verdict?.rule?.plans || [])
+    if (!out[p.side] && Date.now() - Date.parse(m.ts) < 5 * 86400e3) out[p.side] = { ...p, ts: m.ts, text: m.content };
+  return Object.values(out).sort((a, b) => Date.parse(b.ts) - Date.parse(a.ts));
+}
+
+function renderActive() {
+  const plans = activePlans();
+  const px = S.live.price;
+  const fr = cfgOf('chento').frontrun ?? 100;
+  if (!plans.length) { $('#active').innerHTML = `<div class="card empty">Nessun segnale di entry negli ultimi 5 giorni. Appena Chento posta, qui vedi come giocarlo.</div>`; return; }
+  $('#active').innerHTML = plans.map((p) => {
+    const w = when(p.ts);
+    const d = p.side === 'LONG' ? 1 : -1;
+    const dist = (x) => px ? `${sgn((x - px) / px * 100)}% dal prezzo` : '';
+    const col = (k, body, foot) => `<div class="card tint" style="--tint:var(${STRATS[k].color})"><div class="shead">${dot(k)}<h3>${STRATS[k].name}</h3></div><div class="who">${STRATS[k].who}</div>${body}${foot ? `<p class="tiny" style="margin:12px 0 0">${foot}</p>` : ''}</div>`;
+    const orders = (fn) => `<dl class="rows">${p.orders.map((o, i) => `<div class="order-cell"><dt>Ordine ${i + 1} · ${fmt(o.weight * 100)}%</dt><dd>${fn(o)}</dd></div>`).join('')}</dl>`;
+    return `<div style="margin-bottom:28px">
+      <div class="plan-head" style="margin-bottom:12px"><span class="side ${p.side}">${p.side}</span><span class="muted">${w.day} ${w.time}</span><span class="muted">“${esc(clean(p.text).slice(0, 90))}”</span></div>
+      <div class="trio">
+        ${col('discord', orders((o) => o.market ? '<b>A mercato</b>' : `<b class="num">${fmt(o.posted)}</b><span>${dist(o.posted)}</span>`), 'Uscite: segui i messaggi "take" e "sl be".')}
+        ${col('chento', orders((o) => o.market ? '<b>A mercato</b>' : `<b class="num">≈ ${fmt(o.posted + d * fr)}</b><span>anticipa di ~$${fr}</span>`), `Gestione a discrezione. A 40x la liquidazione è a ~2,5% dal medio.`)}
+        ${col('desk', orders((o) => `<b class="num">${o.market ? 'A mercato' : fmt(o.limit)}</b><span>${o.level && Math.abs(o.level.distPct) < 0.25 ? `✓ cluster 1H ×${o.level.touches}` : 'livello discrezionale'}</span>`),
+          `Stop <b class="num neg">${fmt(p.stop)}</b> · BE da <b class="num">${fmt(p.breakevenAt)}</b> · TP1 <b class="num pos">${fmt(p.tp1)}</b> · TP2 <b class="num pos">${fmt(p.tp2)}</b>`)}
+      </div></div>`;
+  }).join('');
+}
+
+function renderMarket() {
+  const c = S.live.ctx;
+  if (!c) { $('#market').innerHTML = '<h2>Mercato</h2><div class="empty">Caricamento…</div>'; return; }
+  const near = c.levels.filter((l) => l.touches >= 3).sort((a, b) => Math.abs(a.price - c.price) - Math.abs(b.price - c.price)).slice(0, 6).sort((a, b) => b.price - a.price);
+  $('#market').innerHTML = `<h2>Mercato BTCUSDT</h2>
+    <div class="grid" style="grid-template-columns:1fr 1fr">
+      <div class="kpi"><div class="label">Prezzo</div><div class="value num">${fmt(S.live.price ?? c.price, 0)}</div><div class="sub ${cls(c.change24h)}">${sgn(c.change24h)}% 24h</div></div>
+      <div class="kpi"><div class="label">Trend 1H</div><div class="value ${c.trend === 'UP' ? 'pos' : 'neg'}">${c.trend === 'UP' ? 'Rialzo' : 'Ribasso'}</div><div class="sub num">EMA200 ${fmt(c.ema200)}</div></div>
+    </div>
+    <h3 style="margin-top:18px">Cluster più vicini</h3>
+    ${near.map((l) => `<div class="bar-row"><span class="num" style="width:64px">${fmt(l.price)}</span><div class="track"><div class="fill" style="width:${Math.min(100, l.touches * 10)}%;background:${l.price > c.price ? 'var(--red)' : 'var(--green)'}"></div></div><span class="tiny num" style="width:92px;text-align:right">${l.touches}× · ${sgn((l.price - c.price) / c.price * 100)}%</span></div>`).join('')}
+    <p class="tiny" style="margin:12px 0 0">ATR 1H ${fmt(c.atr)} (${fmt(c.atrPct, 2)}%)</p>`;
+}
+
+function msgHTML(m) {
+  const w = when(m.ts);
+  const v = m.verdict;
+  const kind = v?.rule?.kind || 'info';
+  const chips = [];
+  if (kind === 'entry') chips.push('<span class="chip entry">Entry</span>');
+  if (kind === 'management') chips.push('<span class="chip manage">Gestione</span>');
+  for (const e of v?.events || []) {
+    if (e.type === 'entry') chips.push(`<span class="chip ${e.side.toLowerCase()}">${e.side} ${e.orders.map((o) => o.market ? 'mkt' : fmt(o.price)).join(' / ')}</span>`);
+    if (e.type === 'take') chips.push(`<span class="chip">Take ${e.pct}%${e.sides.length ? ' ' + e.sides.join('/') : ''}</span>`);
+    if (e.type === 'be') chips.push('<span class="chip">SL → BE</span>');
+    if (e.type === 'sl') chips.push(`<span class="chip">SL ${fmt(e.price)}</span>`);
+  }
+  if (v?.ref) chips.push(`<span class="chip num">BTC ${fmt(v.ref)}</span>`);
+  const notes = kind !== 'info' ? (v?.rule?.notes || []).filter((n) => !n.startsWith('Desk:')) : [];
+  const ai = v?.ai;
+  return `<article class="msg" data-id="${m.id}" data-kind="${kind}" data-text="${esc((m.content || '').toLowerCase())}">
+    <div class="time"><b>${w.time}</b>${w.day}</div>
+    <div>
+      <div class="text">${esc(clean(m.content)) || '<span class="muted">(solo immagine)</span>'}</div>
+      ${chips.length ? `<div class="chips">${chips.join('')}</div>` : ''}
+      ${notes.length ? `<ul class="notes">${notes.map((n) => `<li>${esc(n)}</li>`).join('')}</ul>` : ''}
+      ${ai ? `<div class="ai"><b>Claude</b> · ${esc(ai.summary)}${ai.image_read ? `<div class="tiny" style="margin-top:4px">${esc(ai.image_read)}</div>` : ''}${ai.risk_notes?.length ? `<ul class="notes">${ai.risk_notes.map((n) => `<li>${esc(n)}</li>`).join('')}</ul>` : ''}<div class="tiny" style="margin-top:4px">Consiglio: ${esc(ai.follow)}</div></div>` : ''}
+      ${m.images?.length ? `<div class="thumbs">${m.images.map((s) => `<button aria-label="Apri immagine"><img loading="lazy" src="${s}" alt=""></button>`).join('')}</div>` : ''}
+    </div></article>`;
+}
+
+function renderFeeds() {
+  const actionable = S.feed.filter((m) => m.verdict?.rule?.kind !== 'info');
+  $('#feed-live').innerHTML = actionable.slice(0, 12).map(msgHTML).join('') || '<div class="empty">In attesa di messaggi…</div>';
+  $('#feed-all').innerHTML = S.feed.map(msgHTML).join('');
+  applyFilter();
+}
+let filterKind = 'all';
+function applyFilter() {
+  const q = $('#q').value.trim().toLowerCase();
+  $$('#feed-all .msg').forEach((el) => { el.hidden = !((filterKind === 'all' || el.dataset.kind === filterKind) && (!q || el.dataset.text.includes(q))); });
+}
+
+/* ---------- strategie ---------- */
+function renderStrategies() {
+  $('#strat-cards').innerHTML = ORDER.map((k) => {
+    const s = STRATS[k];
+    return `<div class="card tint" style="--tint:var(${s.color})">
+      <div class="shead">${dot(k)}<h3>${s.name}</h3><span class="spacer"></span><span class="tag ${s.trust[0]}">${s.trust[1]}</span></div>
+      <div class="who">${s.who}</div>
+      <dl class="rows">${s.rows(cfgOf(k)).map(([t, d]) => `<div><dt>${t}</dt><dd>${d}</dd></div>`).join('')}</dl></div>`;
+  }).join('');
+
+  const H = variants('history');
+  const st = (k) => H[k]?.stats || {};
+  $('#diffs').innerHTML = [
+    ['Discord → Chento: l’esecuzione', `Stessi livelli, ma chi copia alla lettera resta fuori: nello storico ${st('discord').unfilled ?? '—'} entry su ${st('discord').campaigns ?? '—'} non vengono mai eseguite su Binance. Anticipare di $${cfgOf('chento').frontrun ?? 100} porta il risultato da ${sgn(st('discord').returnPct)}% a ${sgn(st('chento').returnPct)}%.`],
+    ['Chento → Desk: la gestione', `Desk tiene i livelli ma sostituisce le uscite a sensazione con regole fisse e uno stop vero. Il risultato è simile (${sgn(st('desk').returnPct)}% contro ${sgn(st('chento').returnPct)}%), il drawdown passa da ${fmt(st('chento').maxDrawdownPct, 1)}% a ${fmt(st('desk').maxDrawdownPct, 1)}%.`],
+    ['Cosa resta di Chento', 'I livelli. Un bot che li calcola da solo non regge fuori campione (vedi Laboratorio): il valore del canale è la scelta del livello, non la gestione.'],
+  ].map(([t, b]) => `<div class="card"><h3>${t}</h3><p class="muted" style="margin:0">${b}</p></div>`).join('');
+
+  const m = S.declared?.method || {};
+  $('#method').innerHTML = `<h2>Il metodo di Chento</h2><p class="muted" style="margin-top:-6px">Ricostruito da 135 messaggi e 83 screenshot.</p><ol class="steps">
+    <li><b>Mercato</b><div class="muted">${esc(m.market)}</div></li>
+    <li><b>Livelli</b><div class="muted">${esc(m.levels)}</div></li>
+    <li><b>Entry</b><div class="muted">${esc(m.entries)}</div></li>
+    <li><b>Gestione</b><div class="muted">${esc(m.management)}</div></li>
+    <li><b>Rischio</b><div class="muted">${esc(m.risk)}</div></li></ol>`;
+  $('#how-measured').innerHTML = `<h2>Come le misuriamo</h2>
+    <ol class="steps">
+      <li><b>Stessi segnali</b><div class="muted">Ogni post viene trasformato in ordini e istruzioni. Le tre strategie partono dallo stesso elenco.</div></li>
+      <li><b>Stesse candele</b><div class="muted">Prezzi Binance a 1 minuto. Se in una candela si toccano stop e target, vince lo stop.</div></li>
+      <li><b>Stessa esposizione</b><div class="muted">Ogni entry vale 1× il capitale in nozionale, fee incluse. Nel Confronto puoi scalarla.</div></li>
+      <li><b>Chento è una stima</b><div class="muted">Non vediamo il suo conto: lo modelliamo con i suoi segnali, il suo frontrun e la sua gestione. I suoi screenshot sono a parte, come dichiarazione.</div></li>
+    </ol>`;
+}
+
+/* ---------- confronto ---------- */
+const scaled = (st) => ({ ret: (st.returnPct ?? 0) * lev, dd: (st.maxDrawdownPct ?? 0) * lev });
+
+function renderCompare() {
+  const R = S.research?.replica;
+  if (!R) { $('#scorecard').innerHTML = '<div class="card empty">Ricerca in corso…</div>'; return; }
+  const W = R[win] || R.history;
+  const V = W.variants || {};
+  const hasData = ORDER.some((k) => V[k]?.stats?.campaigns);
+
+  // window note
+  const fwd = R.forward;
+  if (win === 'forward') {
+    const closed = Math.max(0, ...ORDER.map((k) => V[k]?.stats?.closed || 0));
+    const target = 10;
+    $('#window-note').innerHTML = `<div class="callout blue"><b>Test avviato il ${when(fwd.from).day} alle ${when(fwd.from).time}.</b> ${fwd.entries ? `${fwd.entries} segnali di entry finora, ${closed} campagne chiuse.` : 'Nessun nuovo segnale finora: ogni entry da qui in avanti viene giocata dalle tre strategie in parallelo.'} Primo verdetto a ${target} campagne chiuse.
+      <div class="progress"><i style="width:${Math.min(100, closed / target * 100)}%"></i></div></div>`;
+  } else {
+    $('#window-note').innerHTML = `<div class="callout"><b>Storico ${when(W.from).day} – oggi.</b> Le regole di Desk sono state scelte su questo periodo, quindi qui Desk è avvantaggiato. Il giudizio vero è il test live.</div>`;
+  }
+
+  // scorecard
+  const sc = ORDER.map((k) => ({ k, st: V[k]?.stats || {}, s: scaled(V[k]?.stats || {}) }));
+  const best = (f, dir = 1) => hasData ? sc.reduce((a, b) => (f(b) * dir > f(a) * dir ? b : a)).k : null;
+  const bestRet = best((x) => x.s.ret), bestDd = best((x) => -x.s.dd), bestRA = best((x) => x.s.ret / Math.max(0.5, x.s.dd));
+  $('#scorecard').innerHTML = sc.map(({ k, st, s }) => {
+    const badges = [k === bestRA && '<span class="tag best">Miglior rapporto resa/rischio</span>', k === bestRet && k !== bestRA && '<span class="tag">Resa più alta</span>', k === bestDd && k !== bestRA && '<span class="tag">Rischio più basso</span>'].filter(Boolean).join(' ');
+    const fill = st.campaigns ? `${st.filled}/${st.campaigns}` : '—';
+    return `<div class="card tint" style="--tint:var(${STRATS[k].color})">
+      <div class="shead">${dot(k)}<h3>${STRATS[k].name}</h3></div>
+      <div class="big num ${cls(s.ret)}">${st.campaigns ? sgn(s.ret) + '%' : '—'}</div>
+      <div style="min-height:24px;margin-bottom:6px">${badges}</div>
+      <div class="metric"><span>Drawdown massimo</span><span class="num">${st.campaigns ? fmt(s.dd, 1) + '%' : '—'}</span></div>
+      <div class="metric"><span>Campagne vinte</span><span class="num">${st.closed ? fmt(st.winRate) + '%' : '—'}</span></div>
+      <div class="metric"><span>Entry eseguite</span><span class="num">${fill}</span></div>
+      <div class="metric"><span>Profit factor</span><span class="num">${st.closed ? (st.profitFactor ?? '∞') : '—'}</span></div>
+    </div>`;
+  }).join('');
+
+  // equity
+  if (!charts.eq) charts.eq = makeChart($('#eq-chart'));
+  (charts.eqSeries || []).forEach((s) => charts.eq.removeSeries(s));
+  charts.eqSeries = [];
+  const legend = [];
+  const addLine = (curve, colorVar, title, width = 2, scale = true) => {
+    if (!curve?.length) return;
+    const s = charts.eq.addLineSeries({ color: css(colorVar), lineWidth: width, priceLineVisible: false, lastValueVisible: false });
+    const seen = new Set();
+    s.setData(curve.filter((p) => { const t = Math.floor(p.t / 1000); if (seen.has(t)) return false; seen.add(t); return true; }).map((p) => ({ time: Math.floor(p.t / 1000), value: scale ? 100 + (p.eq - 100) * lev : p.eq })));
+    charts.eqSeries.push(s);
+    legend.push(`<span><i style="background:var(${colorVar})"></i>${title}</span>`);
+  };
+  for (const k of ORDER) addLine(V[k]?.curve, STRATS[k].color, STRATS[k].name, k === 'desk' ? 3 : 2);
+  if (hasData) addLine(W.buyHold, '--text-3', 'BTC buy & hold', 1, false);
+  charts.eq.timeScale().fitContent();
+  $('#eq-legend').innerHTML = legend.join('');
+  $('#eq-empty').hidden = hasData;
+  $('#eq-empty').textContent = 'Le curve compariranno con il primo segnale eseguito nel test.';
+
+  // head to head
+  const rows = new Map();
+  for (const k of ORDER) for (const c of V[k]?.campaigns || []) {
+    const key = `${c.msgId}|${c.side}`;
+    if (!rows.has(key)) rows.set(key, { msgId: c.msgId, side: c.side, t: c.openedAt, r: {} });
+    rows.get(key).r[k] = c;
+  }
+  const res = (c) => {
+    if (!c) return '<span class="res none" title="Questa strategia aveva già una posizione aperta sullo stesso lato: il segnale si è aggiunto a quella">in DCA sul trade aperto</span>';
+    if (c.status === 'expired' || !c.fills?.length) return '<span class="res none">non eseguito</span>';
+    if (c.status === 'open' || c.status === 'pending') return `<span class="res open num">${sgn((c.pnl + (c.unrealized || 0)) * lev)}% aperto</span>`;
+    return `<span class="res num ${cls(c.pnl)}">${sgn(c.pnl * lev)}%</span>`;
+  };
+  const list = [...rows.values()].sort((a, b) => b.t - a.t);
+  $('#h2h').innerHTML = list.length ? `<tr><th>Segnale</th><th>Lato</th>${ORDER.map((k) => `<th class="r">${dot(k)} ${STRATS[k].name}</th>`).join('')}</tr>` +
+    list.map((r) => { const m = R.messages?.[r.msgId]; const w = when(m?.t || r.t); return `<tr><td><div class="num">${w.day} ${w.time}</div><div class="tiny">${esc((m?.text || '').slice(0, 90))}${(m?.text || '').length > 90 ? '…' : ''}</div></td><td><span class="side ${r.side}">${r.side}</span></td>${ORDER.map((k) => `<td class="r">${res(r.r[k])}</td>`).join('')}</tr>`; }).join('')
+    : `<tr><td class="empty">Nessun segnale in questa finestra.</td></tr>`;
+
+  // declared
+  const D = S.declared;
+  if (D) {
+    const shots = D.positions.filter((p) => p.roe != null);
+    const top = shots.reduce((a, b) => (b.roe > a.roe ? b : a), shots[0]);
+    const bal = D.balances;
+    const ch = variants('history').chento?.stats || {};
+    $('#declared').innerHTML = `<div class="kv">
+        <div class="kpi"><div class="label">Screenshot exchange</div><div class="value num">${shots.length}</div><div class="sub">tutti in profitto</div></div>
+        <div class="kpi"><div class="label">Perdite mostrate</div><div class="value num">${D.losses_shown_as_charts.length}</div><div class="sub">solo come grafici</div></div>
+        <div class="kpi"><div class="label">ROE max dichiarato</div><div class="value num pos">+${fmt(top.roe, 0)}%</div><div class="sub">${top.lev}x, sul margine</div></div>
+        <div class="kpi"><div class="label">Saldo dichiarato</div><div class="value num">${fmt(bal[0].usdt / 1000)}k → ${fmt(bal[bal.length - 1].usdt / 1000)}k</div><div class="sub">${when(bal[0].ts).day} – ${when(bal[bal.length - 1].ts).day}</div></div>
+      </div>
+      <div class="callout" style="margin-top:16px">I suoi ROE sono sul margine a 30–50x: +100% equivale a un movimento del prezzo del 2–3%. La nostra stima di Chento, a 1× nozionale, fa ${sgn(ch.returnPct)}% nello storico, ${sgn((ch.returnPct || 0) * 40)}% se scalata a 40x senza contare le liquidazioni. Gli screenshot mostrano solo posizioni in profitto.</div>`;
+  }
+}
+
+/* ---------- laboratorio ---------- */
+function renderLab() {
+  const L = S.research?.levels;
+  $('#research-at').textContent = S.research?.researchAt ? 'Aggiornato ' + new Date(S.research.researchAt).toLocaleString('it-IT') : '';
+  if (L) {
+    const row = (n, s) => `<tr><td>${n}</td><td class="r num">${s.trades}</td><td class="r num">${fmt(s.winRate)}%</td><td class="r num ${cls(s.totalR)}">${sgn(s.totalR)}R</td><td class="r num">${s.profitFactor ?? '—'}</td><td class="r num">${fmt(s.maxDrawdownPct, 1)}%</td></tr>`;
+    $('#wf').innerHTML = `<tr><th>Finestra</th><th class="r">Trade</th><th class="r">Win</th><th class="r">Totale</th><th class="r">PF</th><th class="r">DD</th></tr>` +
+      row('Train · 8 mesi', L.best.train) + row('Validation · 2 mesi', L.best.validation) + row('<b>Test · 2 mesi</b>', L.best.test);
+    $('#wf-note').innerHTML = `<b>Verdetto:</b> ${L.best.test.totalR > 0 && L.best.test.profitFactor > 1.2 ? 'il bot mantiene un edge anche fuori campione.' : 'nessun edge fuori campione. Il bot resta come filtro di conferma dei livelli (il "✓ cluster 1H" in Oggi), non come strategia.'} <span class="tiny">${L.samples} configurazioni, rischio 1% per trade, fee incluse.</span>`;
+    if (!charts.wf) charts.wf = makeChart($('#wf-chart'));
+    (charts.wfSeries || []).forEach((s) => charts.wf.removeSeries(s));
+    charts.wfSeries = [['best', '--accent', 2], ['baseline', '--text-3', 1]].map(([k, c, w]) => {
+      const s = charts.wf.addLineSeries({ color: css(c), lineWidth: w, priceLineVisible: false, lastValueVisible: false });
+      s.setData(L[k].curve.map((p) => ({ time: Math.floor(p.t / 1000), value: p.eq })));
+      return s;
+    });
+    charts.wfSeries[0].setMarkers([{ time: Math.floor(L.windows.tTrain / 1000), position: 'aboveBar', color: css('--orange'), shape: 'arrowDown', text: 'validation' }, { time: Math.floor(L.windows.tVal / 1000), position: 'aboveBar', color: css('--red'), shape: 'arrowDown', text: 'test' }]);
+    charts.wf.timeScale().fitContent();
+  }
+  const M = S.research?.mechanical;
+  if (M) {
+    $('#mech-note').textContent = `${M.tried} combinazioni provate sulle entry del canale: ordinate sulla prima metà (fino al ${when(M.half).day}), poi verificate sulla seconda. Desk usa la quarta riga.`;
+    const s = (x) => `${sgn(x.returnPct)}% · DD ${fmt(x.maxDrawdownPct, 1)}%`;
+    $('#mech').innerHTML = `<tr><th class="r">Frontrun</th><th class="r">Stop</th><th class="r">BE</th><th class="r">TP1</th><th class="r">TP2</th><th>Hedge</th><th class="r">1ª metà</th><th class="r">2ª metà</th><th class="r">Totale</th></tr>` +
+      M.top.map((t) => `<tr><td class="r num">$${t.cfg.frontrun}</td><td class="r num">${t.cfg.hardStopPct}%</td><td class="r num">${t.cfg.beAtPct}%</td><td class="r num">${t.cfg.tp1Pct}%</td><td class="r num">${t.cfg.tp2Pct}%</td><td>${t.cfg.skipHedges ? 'no' : 'sì'}</td><td class="r num">${s(t.firstHalf)}</td><td class="r num ${cls(t.secondHalf.returnPct)}">${s(t.secondHalf)}</td><td class="r num ${cls(t.full.returnPct)}">${s(t.full)}</td></tr>`).join('');
+  }
+  const H = variants('history');
+  const keys = ['chento', 'lab_stop', 'lab_nohedge'].filter((k) => H[k]);
+  $('#lab-variants').innerHTML = `<tr><th>Variante</th><th class="r">Rend.</th><th class="r">Max DD</th><th class="r">Win</th><th class="r">PF</th><th class="r">Eseguite</th></tr>` +
+    keys.map((k) => { const x = H[k].stats; return `<tr><td>${esc(H[k].name)}</td><td class="r num ${cls(x.returnPct)}">${sgn(x.returnPct)}%</td><td class="r num">${fmt(x.maxDrawdownPct, 1)}%</td><td class="r num">${fmt(x.winRate)}%</td><td class="r num">${x.profitFactor ?? '∞'}</td><td class="r num">${x.filled}/${x.campaigns}</td></tr>`; }).join('');
+}
+
+/* ---------- bot ---------- */
+let B = null;
+const STATUS = { active: ['active', 'Attivo'], paused: ['paused', 'In pausa'], blocked: ['blocked', 'Fermo fino a domani'] };
+const usd = (n, d = 2) => `${n < 0 ? '−' : ''}${fmt(Math.abs(n), d)} $`;
+const usdS = (n, d = 2) => `${n > 0 ? '+' : n < 0 ? '−' : ''}${fmt(Math.abs(n), d)} $`;
+
+function phaseOf(c) {
+  if (!c) return null;
+  if (c.qty <= 0) return 'Ordini in attesa di esecuzione';
+  if (c.tp1) return 'TP1 preso · il resto segue il prezzo (trailing)';
+  if (c.be) return 'In profitto · stop a breakeven';
+  return 'Posizione aperta';
+}
+
+function renderBot() {
+  if (!B || B.disabled) { $('#bot-kpis').innerHTML = '<div class="card empty">Bot disattivato (BOT_ENABLED=0).</div>'; return; }
+  const sm = B.summary;
+  const [stCls, stLabel] = STATUS[sm.status];
+  const notifyOn = B.notify.ntfy || B.notify.telegram;
+  $('#bot-controls').innerHTML = `<span class="status-pill ${stCls}"><span class="dot ${stCls === 'active' ? 'on' : 'warn'}"></span>${stLabel}${B.pauseReason ? ` · ${esc(B.pauseReason)}` : ''}</span>
+    ${B.paused ? '<button class="btn" data-bot="resume">Riattiva</button>' : '<button class="btn ghost" data-bot="pause">Metti in pausa</button>'}
+    ${notifyOn ? '<button class="btn ghost" data-bot="test-notify">Notifica di prova</button>' : '<span class="tiny">Notifiche telefono non configurate: vedi NTFY_TOPIC nel file .env</span>'}
+    <span class="spacer"></span><span class="tiny">Avviato ${when(B.startedAt).day} · ultima candela ${B.lastBarT ? when(B.lastBarT).time : '—'}</span>`;
+
+  const R = S?.research?.botReplay?.summary;
+  $('#bot-kpis').innerHTML = [
+    ['Capitale', usd(sm.equity, 0), `${sgn(sm.returnPct)}% da ${usd(sm.capital, 0)}`, cls(sm.returnPct)],
+    ['Oggi', `${sgn(sm.todayPct)}%`, `limite −${B.config.dailyLossPct}%`, cls(sm.todayPct)],
+    ['Drawdown', `${fmt(sm.drawdownPct, 2)}%`, `massimo ${fmt(sm.maxDrawdownPct, 2)}% · pausa a ${B.config.maxDrawdownPct}%`, ''],
+    ['Sullo storico', R ? `${sgn(R.returnPct)}%` : '—', R ? `${R.trades} campagne · DD max ${fmt(R.maxDrawdownPct, 1)}% · stesso codice` : 'replay non ancora calcolato', R ? cls(R.returnPct) : ''],
+  ].map(([l, v, sub, c]) => `<div class="card kpi"><div class="label">${l}</div><div class="value num ${c}">${v}</div><div class="sub">${sub}</div></div>`).join('');
+
+  $('#bot-positions').innerHTML = ['LONG', 'SHORT'].map((side) => {
+    const c = B.campaigns[side];
+    if (!c) return `<div class="card pos-card"><div class="plan-head"><span class="side ${side}">${side}</span></div><div class="empty" style="padding:24px 0 8px">Nessuna posizione né ordine.</div></div>`;
+    const d = side === 'LONG' ? 1 : -1;
+    const tp1 = c.avg ? c.avg * (1 + d * B.config.tp1Pct / 100) : null;
+    return `<div class="card pos-card"><div class="plan-head"><span class="side ${side}">${side}</span><span class="muted">campagna #${c.id} · dal ${when(c.openedAt).day} ${when(c.openedAt).time}</span></div>
+      <div class="phase">${phaseOf(c)}</div>
+      ${c.qty > 0 ? `<div class="levels" style="margin-top:0">
+        <div class="lv"><span>Prezzo medio</span><b class="num">${fmt(c.avg)}</b></div>
+        <div class="lv"><span>Quantità</span><b class="num">${fmt(c.qty, 4)}</b></div>
+        <div class="lv"><span>Stop</span><b class="num neg">${fmt(c.stop)}</b></div>
+        <div class="lv"><span>P&L aperto</span><b class="num ${cls(c.unrealized)}">${usdS(c.unrealized)}</b></div>
+      </div>
+      <p class="tiny" style="margin:10px 0 0">${c.tp1 ? `Trailing ${B.config.trailPct}% dal miglior prezzo (${fmt(c.peak)})` : `TP1 ${fmt(tp1)} · BE da ${fmt(c.avg * (1 + d * B.config.bePct / 100))}`} · realizzato ${usdS(c.realized)}</p>` : ''}
+      ${c.orders.length ? `<table style="margin-top:12px"><tr><th>Ordine limit</th><th class="r">Livello canale</th><th class="r">Quantità</th><th class="r">Distanza</th></tr>${c.orders.map((o) => `<tr><td class="num">${fmt(o.price)}</td><td class="r num">${fmt(o.posted)}</td><td class="r num">${fmt(o.qty, 4)}</td><td class="r num">${B.price ? sgn((o.price - B.price) / B.price * 100) + '%' : '—'}</td></tr>`).join('')}</table>` : ''}
+    </div>`;
+  }).join('');
+
+  // equity: live account, with the historical replay for reference
+  if (!charts.bot) charts.bot = makeChart($('#bot-chart'));
+  (charts.botSeries || []).forEach((x) => charts.bot.removeSeries(x));
+  charts.botSeries = [];
+  const legend = [];
+  const line = (curve, color, title, width) => {
+    if (!curve || curve.length < 2) return;
+    const x = charts.bot.addLineSeries({ color: css(color), lineWidth: width, priceLineVisible: false, lastValueVisible: false });
+    const seen = new Set();
+    x.setData(curve.filter((p) => { const t = Math.floor(p.t / 1000); if (seen.has(t)) return false; seen.add(t); return true; }).map((p) => ({ time: Math.floor(p.t / 1000), value: p.eq })));
+    charts.botSeries.push(x);
+    legend.push(`<span><i style="background:var(${color})"></i>${title}</span>`);
+  };
+  const live = B.curve.length >= 2;
+  if (live) line(B.curve, '--c-desk', 'Conto live (paper)', 3);
+  else line(S?.research?.botReplay?.curve, '--text-3', 'Replay sullo storico (10.000 $ iniziali)', 2);
+  charts.bot.timeScale().fitContent();
+  $('#bot-legend').innerHTML = legend.join('');
+  $('#bot-chart-empty').hidden = live || !!S?.research?.botReplay;
+  $('#bot-chart-empty').textContent = 'La curva del conto live parte con la prima ora di attività.';
+
+  $('#bot-log').innerHTML = B.log.length ? B.log.slice(0, 30).map((n) => `<div class="log-row"><div class="time"><b>${when(n.t).time}</b>${when(n.t).day}</div><div><span class="kind ${n.kind}"></span><b>${esc(n.title)}</b><div class="body">${esc(n.body)}</div></div></div>`).join('') : '<div class="empty">Ancora nessuna attività. Il bot agisce al prossimo segnale di Chento.</div>';
+
+  const c = B.config;
+  $('#bot-rules').innerHTML = `<dl class="rows">
+    ${[
+      ['Rischio per campagna', `${c.riskPct}% del conto (${usd(sm.equity * c.riskPct / 100, 0)}); DCA +${c.dcaRiskPct}%, massimo ${c.maxCampaignRiskPct}%`],
+      ['Entry', `Livelli del canale anticipati di $${c.frontrun}, massimo ${c.maxEntries} ingressi, ordini validi ${c.orderTTLh} ore`],
+      ['Stop', `${c.stopPct}% dal prezzo medio; uno stop più stretto dal canale viene accettato`],
+      ['Uscite', `Breakeven a +${c.bePct}%, ${c.tp1Frac * 100}% a +${c.tp1Pct}%, il resto in trailing ${c.trailPct}%`],
+      ['Messaggi del canale', 'Segue "chiudi" e "sl be" (riducono il rischio); ignora i take parziali'],
+      ['Freni', `Stop giornaliero a −${c.dailyLossPct}%, pausa a −${c.maxDrawdownPct}% dal massimo, esposizione massima ${c.maxLeverage}×`],
+    ].map(([t, d]) => `<div><dt>${t}</dt><dd>${d}</dd></div>`).join('')}</dl>
+    <p class="tiny" style="margin:12px 0 0">Si cambiano nel file .env (BOT_RISK_PCT, BOT_CAPITAL, …) e si applicano al riavvio del servizio.</p>`;
+
+  $('#bot-trades').innerHTML = B.trades.length ? `<tr><th>#</th><th>Lato</th><th>Aperta</th><th>Chiusa</th><th class="r">Medio</th><th class="r">Uscita</th><th>Motivo</th><th class="r">P&L</th></tr>` +
+    B.trades.map((t) => `<tr><td class="num">${t.id}</td><td><span class="side ${t.side}">${t.side}</span></td><td class="num">${when(t.openedAt).day} ${when(t.openedAt).time}</td><td class="num">${when(t.closedAt).day} ${when(t.closedAt).time}</td><td class="r num">${fmt(t.avg)}</td><td class="r num">${fmt(t.exit)}</td><td class="tiny">${esc(t.reason)}</td><td class="r num ${cls(t.pnl)}">${usdS(t.pnl)}</td></tr>`).join('')
+    : `<tr><td class="empty">Nessuna campagna chiusa nel conto live.</td></tr>`;
+}
+
+document.addEventListener('click', async (e) => {
+  const b = e.target.closest('[data-bot]');
+  if (!b) return;
+  b.disabled = true;
+  const r = await fetch('/api/bot/' + b.dataset.bot, { method: 'POST' }).then((x) => x.json()).catch(() => null);
+  if (b.dataset.bot === 'test-notify') { b.textContent = r?.sent ? 'Inviata ✓' : 'Invio non riuscito'; b.disabled = false; return; }
+  if (r && !r.sent) { B = r; renderBot(); }
+});
+
+/* ---------- status / price ---------- */
+function renderStatus(st) {
+  const d = st.collector === 'online' ? 'on' : st.collector === 'degraded' ? 'warn' : 'off';
+  const label = { online: 'Discord live', degraded: 'Discord instabile', offline: 'Discord offline' }[st.collector];
+  $('#status').innerHTML = `<span class="dot ${d}"></span><span>${label}<span class="label-long"> · ${st.messages} msg</span></span>`;
+  $('#ai').innerHTML = st.ai ? `<span class="dot on"></span>Claude attivo` : `Analisi a regole`;
+  $('#today-lede').innerHTML = `L'ultimo segnale di <a href="${st.channel}" target="_blank" rel="noopener">#canale</a>, letto in tre modi. Ultimo messaggio ${st.lastMessageAt ? new Date(st.lastMessageAt).toLocaleString('it-IT', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '—'}.`;
+}
+let lastPx = null;
+function renderPrice(p) {
+  if (!p) return;
+  const dir = lastPx == null ? '' : p > lastPx ? 'pos' : p < lastPx ? 'neg' : '';
+  $('#price').innerHTML = `<span class="hide-sm">BTC </span><span class="num ${dir}">${fmt(p, 0)}</span>`;
+  lastPx = p;
+}
+
+/* ---------- lightbox (FLIP from the thumbnail and back) ---------- */
+const lb = $('#lightbox');
+const lbImg = $('img', lb);
+let lbFrom = null;
+function flipFrom(rect) {
+  const to = lbImg.getBoundingClientRect();
+  return `translate(${rect.left - to.left}px, ${rect.top - to.top}px) scale(${rect.width / to.width}, ${rect.height / to.height})`;
+}
+document.addEventListener('click', async (e) => {
+  const b = e.target.closest('.thumbs button');
+  if (!b) return;
+  lbFrom = b;
+  lbImg.style.transition = 'none';
+  lbImg.src = $('img', b).src;
+  await lbImg.decode().catch(() => {});
+  lb.classList.add('on');
+  lbImg.style.transform = flipFrom(b.getBoundingClientRect());
+  lbImg.getBoundingClientRect();
+  lbImg.style.transition = '';
+  lbImg.style.transform = 'none';
+});
+function closeLb() {
+  if (!lb.classList.contains('on')) return;
+  if (lbFrom) lbImg.style.transform = flipFrom(lbFrom.getBoundingClientRect());
+  lb.classList.remove('on');
+}
+lb.addEventListener('pointerdown', closeLb);
+addEventListener('keydown', (e) => { if (e.key === 'Escape') closeLb(); });
+
+/* ---------- boot ---------- */
+function current() { return $$('.view').find((v) => v.classList.contains('on'))?.id.slice(5); }
+function renderAll() {
+  renderStatus(S.status); renderPrice(S.live.price);
+  renderActive(); renderMarket(); renderFeeds(); renderStrategies();
+  renderPriceChart();
+  if (current() === 'compare') renderCompare();
+  if (current() === 'lab') renderLab();
+  if (current() === 'bot') renderBot();
+}
+
+let initial = 'today';
+try { initial = localStorage.getItem('desk.view') || 'today'; } catch {}
+if (!['today', 'bot', 'strategies', 'compare', 'lab', 'messages'].includes(initial)) initial = 'today';
+segmented($('#seg'), (b) => show(b.dataset.view), initial);
+segmented($('#filter'), (b) => { filterKind = b.dataset.f; applyFilter(); }, 'all');
+segmented($('#window'), (b) => { win = b.dataset.f; if (S) renderCompare(); }, 'forward');
+$('#q').addEventListener('input', applyFilter);
+$('#lev').addEventListener('input', (e) => { lev = Number(e.target.value); $('#lev-out').textContent = `${lev}×`; renderCompare(); });
+$('#rerun').addEventListener('click', async (e) => { e.target.textContent = 'Calcolo in corso…'; await fetch('/api/research', { method: 'POST' }); });
+
+Promise.all([fetch('/api/state').then((r) => r.json()), fetch('/api/bot').then((r) => r.json()).catch(() => null)]).then(([state, bot]) => {
+  S = state; B = bot;
+  renderAll();
+  refreshBot();
+  const es = new EventSource('/api/stream');
+  es.addEventListener('bot', (e) => { B = JSON.parse(e.data); if (current() === 'bot') renderBot(); });
+  es.addEventListener('status', (e) => renderStatus(JSON.parse(e.data)));
+  es.addEventListener('price', (e) => { const d = JSON.parse(e.data); S.live.price = d.price; renderPrice(d.price); });
+  es.addEventListener('ctx', (e) => { S.live.ctx = JSON.parse(e.data); renderMarket(); });
+  es.addEventListener('message', async () => {
+    const prev = new Set(S.feed.map((m) => m.id));
+    S.feed = await fetch('/api/feed').then((r) => r.json());
+    renderActive(); renderFeeds(); renderPriceChart();
+    $$('.feed .msg').forEach((el) => { if (!prev.has(el.dataset.id)) el.classList.add('new'); });
+  });
+  es.addEventListener('research', (e) => { S.research = JSON.parse(e.data); $('#rerun').textContent = 'Ricalcola tutto'; renderStrategies(); renderCompare(); renderLab(); });
+});
+function refreshBot() {
+  // keep open P&L and order distances fresh between bot events
+  setInterval(async () => { if (current() === 'bot') { B = await fetch('/api/bot').then((r) => r.json()); renderBot(); } }, 20000);
+}
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => location.reload());
+</script>
+</body>
+</html>

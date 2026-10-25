@@ -1,0 +1,260 @@
+{
+  "_note": "Exchange screenshots posted in the channel, transcribed by hand (Blofin, BTCUSDT perp). Self-reported and selected by the poster: losing positions were never shown as exchange screenshots.",
+  "positions": [
+    {
+      "ts": "2026-09-30T10:36",
+      "side": "SHORT",
+      "entry": 85120,
+      "lev": 40,
+      "kind": "limit order"
+    },
+    {
+      "ts": "2026-09-30T10:36",
+      "side": "LONG",
+      "entry": 82250,
+      "kind": "limit order"
+    },
+    {
+      "ts": "2026-10-05T14:27",
+      "side": "LONG",
+      "entry": 79243.3,
+      "lev": 21,
+      "pnl": 224527.59,
+      "roe": 186.99,
+      "note": "opened 2026-09-16"
+    },
+    {
+      "ts": "2026-10-08T04:28",
+      "side": "LONG",
+      "entry": 82400,
+      "lev": 40,
+      "pnl": 20354.59,
+      "roe": 18.41
+    },
+    {
+      "ts": "2026-10-08T14:07",
+      "side": "LONG",
+      "entry": 82044.6,
+      "lev": 40,
+      "pnl": 16447.83,
+      "roe": 18.65
+    },
+    {
+      "ts": "2026-10-08T19:27",
+      "side": "LONG",
+      "entry": 81080.4,
+      "lev": 50,
+      "pnl": 41206.73,
+      "roe": 36.39
+    },
+    {
+      "ts": "2026-10-08T23:07",
+      "side": "LONG",
+      "entry": 81080.4,
+      "lev": 50,
+      "pnl": 50812.92,
+      "roe": 44.88
+    },
+    {
+      "ts": "2026-10-09T02:08",
+      "side": "LONG",
+      "entry": 81080.4,
+      "lev": 50,
+      "pnl": 69075.05,
+      "roe": 61.01
+    },
+    {
+      "ts": "2026-10-09T11:29",
+      "side": "LONG",
+      "entry": 81080.4,
+      "lev": 50,
+      "pnl": 100014.97,
+      "roe": 88.34
+    },
+    {
+      "ts": "2026-10-09T11:32",
+      "side": "LONG",
+      "entry": 81080.4,
+      "lev": 50,
+      "pnl": 113971.7,
+      "roe": 100.67
+    },
+    {
+      "ts": "2026-10-09T11:38",
+      "side": "LONG",
+      "entry": 81080.4,
+      "lev": 50,
+      "pnl": 97445.95,
+      "roe": 114.76
+    },
+    {
+      "ts": "2026-10-09T11:51",
+      "side": "LONG",
+      "entry": 81080.4,
+      "lev": 50,
+      "pnl": 82872.16,
+      "roe": 130.13
+    },
+    {
+      "ts": "2026-10-09T13:35",
+      "side": "LONG",
+      "entry": 81930,
+      "lev": 30,
+      "pnl": 34110.19,
+      "roe": 25.73
+    },
+    {
+      "ts": "2026-10-09T14:25",
+      "side": "LONG",
+      "entry": 82263.3,
+      "lev": 40,
+      "pnl": 81290.54,
+      "roe": 41.63
+    },
+    {
+      "ts": "2026-10-11T15:47",
+      "side": "LONG",
+      "lev": 30,
+      "pnl": 59994.14,
+      "roe": 27.4
+    },
+    {
+      "ts": "2026-10-11T15:57",
+      "side": "LONG",
+      "entry": 82614.3,
+      "lev": 30,
+      "pnl": 40943.59,
+      "roe": 33.25
+    },
+    {
+      "ts": "2026-10-15T02:38",
+      "side": "LONG",
+      "lev": 35,
+      "pnl": 16176.5,
+      "roe": 7.3
+    },
+    {
+      "ts": "2026-10-15T02:58",
+      "side": "LONG",
+      "lev": 35,
+      "pnl": 25803.63,
+      "roe": 20.71
+    },
+    {
+      "ts": "2026-10-19T13:35",
+      "side": "SHORT",
+      "entry": 82712,
+      "lev": 35,
+      "pnl": 35373.08,
+      "roe": 17.17
+    },
+    {
+      "ts": "2026-10-19T13:55",
+      "side": "SHORT",
+      "entry": 82712,
+      "lev": 35,
+      "pnl": 50262.48,
+      "roe": 24.4
+    },
+    {
+      "ts": "2026-10-19T14:11",
+      "side": "SHORT",
+      "entry": 82712,
+      "lev": 35,
+      "pnl": 70447.16,
+      "roe": 34.21
+    },
+    {
+      "ts": "2026-10-20T14:00",
+      "side": "LONG",
+      "entry": 81642.1,
+      "lev": 35,
+      "pnl": 58473.79,
+      "roe": 19.53
+    },
+    {
+      "ts": "2026-10-20T14:00",
+      "side": "SHORT",
+      "entry": 82712,
+      "lev": 35,
+      "pnl": 53519.49,
+      "roe": 25.99
+    },
+    {
+      "ts": "2026-10-20T14:03",
+      "side": "LONG",
+      "entry": 81642.1,
+      "lev": 35,
+      "pnl": 93572.18,
+      "roe": 31.25
+    },
+    {
+      "ts": "2026-10-20T14:03",
+      "side": "SHORT",
+      "entry": 82712,
+      "lev": 35,
+      "pnl": 29687.77,
+      "roe": 14.41
+    },
+    {
+      "ts": "2026-10-22T09:16",
+      "side": "SHORT",
+      "entry": 84545.3,
+      "lev": 30,
+      "pnl": 172377.17,
+      "roe": 96.67
+    },
+    {
+      "ts": "2026-10-22T16:54",
+      "side": "SHORT",
+      "entry": 84545.3,
+      "lev": 30,
+      "pnl": 225306.05,
+      "roe": 126.35
+    }
+  ],
+  "balances": [
+    {
+      "ts": "2026-10-11T15:49",
+      "usdt": 280546.44
+    },
+    {
+      "ts": "2026-10-11T15:57",
+      "usdt": 290172
+    },
+    {
+      "ts": "2026-10-14T17:01",
+      "usdt": 315000,
+      "source": "text"
+    },
+    {
+      "ts": "2026-10-15T20:20",
+      "usdt": 350000,
+      "source": "text"
+    }
+  ],
+  "losses_shown_as_charts": [
+    {
+      "ts": "2026-09-29T14:37",
+      "move_pct": -0.81,
+      "text": "Got cooooked again"
+    },
+    {
+      "ts": "2026-10-02T14:28",
+      "move_pct": -1.49,
+      "text": "not my week ngl"
+    },
+    {
+      "ts": "2026-10-02T18:51",
+      "move_pct": -3.93,
+      "text": "Come to papa"
+    }
+  ],
+  "method": {
+    "market": "BTCUSDT perpetual su Blofin; grafici TradingView da 5m a 1H",
+    "levels": "Livelli orizzontali di liquidità da un indicatore di pivot e cluster (pivot 5, zone ATR×0,3, densità dei cluster, squilibrio delle liquidazioni, bias CVD, bounce rate 50–70%)",
+    "entries": "Ordini limit a scaletta sui livelli, 2–3 ingressi (es. 20/35/45%), anticipati di ±$100; a mercato se il prezzo è entro 0,1–0,2%",
+    "management": "Stop a breakeven dopo la prima reazione, chiusure parziali del 10–30% della posizione RESIDUA, hedge sul livello opposto",
+    "risk": "20–50x cross, stop \"placeholder\", margine pieno nelle challenge"
+  }
+}
