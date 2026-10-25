@@ -12,4 +12,4 @@ run_worker_first = true
 [[d1_databases]]
 binding = "DB"
 database_name = "signal-desk"
-database_id = "REPLACE_WITH_D1_ID"
+database_id = "c2298bac-54b3-411c-9a9d-fcd67740d587"

@@ -67,6 +67,26 @@ Metti `ANTHROPIC_API_KEY` in `.env`. Ogni nuovo messaggio, con i suoi screenshot
 
 `data/declared.json` contiene le posizioni degli screenshot exchange trascritte a mano (dichiarate dal canale, non verificabili).
 
+## Versione online (Cloudflare, gratis)
+
+Discord, bot e alert Telegram restano sul Mac. Ogni 60 secondi il Mac invia uno scatto dei dati a un Worker Cloudflare (`cloud/`), che serve la stessa dashboard in **sola lettura**, dietro password. Gli screenshot del canale non vengono mai caricati.
+
+- **Indirizzo:** l'URL `*.workers.dev` del deploy; con il DNS del dominio su Cloudflare si può usare un sottodominio proprio.
+- **Stato:** in alto vedi "aggiornato X s fa", oppure "Mac offline" se non arrivano dati da 3 minuti.
+- **Piano gratuito:** Workers fino a 100k richieste al giorno, D1 fino a 100k scritture al giorno.
+
+Setup (una volta sola):
+```bash
+cd cloud && npm install && npx wrangler login
+npx wrangler d1 create signal-desk            # metti il database_id in wrangler.toml
+npx wrangler d1 execute signal-desk --remote --file=schema.sql
+npx wrangler deploy
+openssl rand -hex 32 | tee /dev/stderr | npx wrangler secret put INGEST_SECRET   # stesso valore in CLOUD_INGEST_SECRET nel .env
+openssl rand -hex 32 | npx wrangler secret put SESSION_SECRET
+npx wrangler secret put DASH_PASSWORD         # la password della dashboard
+```
+Poi nel `.env` del Mac imposta `CLOUD_URL` e `CLOUD_INGEST_SECRET` e riavvia il servizio. Per provarlo in locale: `npm run dev` in `cloud/`, con i valori di prova in `cloud/.dev.vars`.
+
 ## Le tre strategie
 
 I livelli arrivano tutti da Chento; cambia chi li esegue e come.
